@@ -1,32 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:yts_movie_app/Services/movie_album.dart';
+import 'package:yts_movie_app/Services/movie_album.dart' as widget;
+import 'package:yts_movie_app/screens/search_screen.dart';
 
 
+class HomeScreen extends StatefulWidget {
 
-class HomeScreen extends StatelessWidget {
-final List<Map<String, dynamic>> movies = [
-  {'title':'Openheimer','poster':'https://image.tmdb.org/t/p/w200/ptpr0kGAckfQkJeJIt8st5dglvd.jpg'},
-   {'title': 'Mario Bros', 'poster': 'https://image.tmdb.org/t/p/w200/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg'},
-    {'title': 'The Batman', 'poster': 'https://image.tmdb.org/t/p/w200/74xTEgt7R36Fpooo50r9T25onhq.jpg'},
-    {'title': 'Avatar 2', 'poster': 'https://image.tmdb.org/t/p/w200/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg'},
-  {'title': 'Inception', 'poster': 'https://image.tmdb.org/t/p/w200/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg'},
-  {'title': 'Interstellar', 'poster': 'https://image.tmdb.org/t/p/w200/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg'},
-  {'title': 'The Dark Knight','poster':'https://yts.mx/assets/images/movies/the_dark_knight_2008/medium-cover.jpg'},
+  @override
+  HomeScreenState createState()=> HomeScreenState();
+}
 
-];
+class HomeScreenState extends State<HomeScreen>{
+  late Future<List<MovieAlbum>> fetchData;
+  @override
+   void initState(){
+    super.initState();
+    fetchData = fetchMovies();
+  }
+
+  final SliverGridDelegate gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+    crossAxisCount: 2,
+    crossAxisSpacing: 10.0,
+    mainAxisSpacing: 10.0,
+  );
+  
 
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white30,
+      backgroundColor: Colors.black12,
       appBar: AppBar(
         title: Text("YTS Movies",selectionColor: Colors.greenAccent,),
         foregroundColor: Colors.greenAccent,
         backgroundColor: Colors.black,
         toolbarHeight: 50,
-        actions: [
+        actions: [ 
           IconButton(
               onPressed: (){},
               icon: const Icon(Icons.search),
@@ -46,65 +57,77 @@ final List<Map<String, dynamic>> movies = [
         systemOverlayStyle: SystemUiOverlayStyle.light,
 
       ),
-      body:  SingleChildScrollView(
-      child:Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(padding: EdgeInsets.all(15.0),
-          child:
-          Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: FutureBuilder<List<MovieAlbum>>(
+        future: fetchData,
+        builder: (context, snapshot){
+          if(snapshot.hasData){
+            return Column(
+
               children: [
                 Text(
-                  "Welcome to YTS Movies",style: TextStyle(color: Colors.lightBlue,fontSize: 20,fontWeight: FontWeight.bold),
+                    "Welcome to Yts Movies",
+                    style:  TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                      textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 10,),
                 Text(
-                  "Explore the latest movies and TV shows",style: TextStyle(color: Colors.blueAccent,fontSize: 15),
+                  "Explore the Latest movies and Tv Shows",
+                  style:  TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
                 ),
-              ],
-          ),
-           ),
-          SizedBox(height: 20,),
-        SizedBox(
-            height: MediaQuery.of(context).size.height * 0.6, // Give height to GridView
-            child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 0.65,
-                ),
-                itemCount: movies.length,
-                itemBuilder: (context, index) {
-                  return Column(
+                SizedBox(height: 10,),
+                Expanded(child:GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 9.0,
+                mainAxisSpacing: 15.0,
+                childAspectRatio: 0.55,
+              ),
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index){
+                final movie = snapshot.data![index];
+                return Card(
+                  elevation: 4.0,
+                  color: Colors.black,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          movies[index]['poster']!,
-                          fit: BoxFit.cover,
-                          height: 250, // Fixed height for the image
-                        ),
+                      Image.network(
+                        movie.coverImage,
+                        fit: BoxFit.cover,
                       ),
-                      const SizedBox(height: 5),
                       Text(
-                        movies[index]['title']!,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        movie.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        ),
-                      ],
-                    );
-                  }
-                )
-              
-          )
-          
-        ],
-      )
-          
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      Text(movie.year,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white),
+                      ),
+                      Text(movie.rating,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+                ),
+          ],
+            );
+          }else if(snapshot.hasError){
+            return Center(child: Text("${snapshot.error}"),);
+          }
+          return Center(child: CircularProgressIndicator());
+        },
+
       ),
-        bottomNavigationBar: BottomNavigationBar(
+
+      bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.black,
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.white,
