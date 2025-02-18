@@ -60,10 +60,31 @@ class DetailScreenState extends State<DetailScreen> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                Image.network(movie.coverImage),
-                Text(movie.title),
-                Text(movie.year),
-                Text(movie.rating),
+                Image.network(
+                  movie.coverImage,
+                  alignment: Alignment.center,
+                  scale: 0.5,
+                ),
+                Text(movie.title,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(movie.year,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                
+                ),
+                Text(movie.rating,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                ),
                 Text(movie.description),
               ],
             ),
