@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:yts_movie_app/Services/movie_album.dart';
 import 'package:yts_movie_app/Services/movie_album.dart' as widget;
 import 'package:yts_movie_app/screens/search_screen.dart';
-
+import 'package:yts_movie_app/screens/movie_details_page.dart';
 
 class HomeScreen extends StatefulWidget {
 
@@ -19,11 +19,6 @@ class HomeScreenState extends State<HomeScreen>{
     fetchData = fetchMovies();
   }
 
-  final SliverGridDelegate gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: 2,
-    crossAxisSpacing: 10.0,
-    mainAxisSpacing: 10.0,
-  );
   
 
 
@@ -31,7 +26,7 @@ class HomeScreenState extends State<HomeScreen>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black12,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text("YTS Movies",selectionColor: Colors.greenAccent,),
         foregroundColor: Colors.greenAccent,
@@ -60,9 +55,19 @@ class HomeScreenState extends State<HomeScreen>{
       body: FutureBuilder<List<MovieAlbum>>(
         future: fetchData,
         builder: (context, snapshot){
-          if(snapshot.hasData){
-            return Column(
+         if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No movies found'));
+          }
+          final movie = snapshot.data!;
+            return Column(
               children: [
                 Text(
                     "Welcome to Yts Movies",
@@ -76,6 +81,7 @@ class HomeScreenState extends State<HomeScreen>{
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 10,),
+                
                 Expanded(child:GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -85,44 +91,45 @@ class HomeScreenState extends State<HomeScreen>{
               ),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index){
-                final movie = snapshot.data![index];
-                return Card(
+                return GestureDetector(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(movieId: movie[index].id.toString())));
+                  },
+
+                child:  Card(
                   elevation: 4.0,
                   color: Colors.black,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Image.network(
-                        movie.coverImage,
+                        movie[index].coverImage,
                         fit: BoxFit.cover,
                       ),
                       Text(
-                        movie.title,
+                        movie[index].title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white),
                       ),
-                      Text(movie.year,
+                      Text(movie[index].year,
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.white),
                       ),
-                      Text(movie.rating,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
+                      // Text(movie.rating,
+                      //   textAlign: TextAlign.center,
+                      //   style: TextStyle(color: Colors.white),
+                      // ),
+                           ],
+                         ),
                       ),
-                    ],
-                  ),
                 );
-              },
-            ),
+                    },
+                  ),
                 ),
           ],
             );
-          }else if(snapshot.hasError){
-            return Center(child: Text("${snapshot.error}"),);
-          }
-          return Center(child: CircularProgressIndicator());
         },
 
       ),
